@@ -31,12 +31,3 @@ view model =
         [ h1 [] [ text <| "Hey " ++ model.name ]
         , input [ type_ "text", value model.name, onInput NameChange ] []
         ]
-
-
-main : Program Never Model Msg
-main =
-    Html.beginnerProgram
-        { model = initModel
-        , view = view
-        , update = update
-        }
