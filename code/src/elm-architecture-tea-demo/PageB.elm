@@ -1,4 +1,4 @@
-module PageA exposing (..)
+module PageB exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -11,7 +11,7 @@ type alias Model =
 
 initModel : Model
 initModel =
-    { name = "Page A" }
+    { name = "Page B" }
 
 
 type Msg
