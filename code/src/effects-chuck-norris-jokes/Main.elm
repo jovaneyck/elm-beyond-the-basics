@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Html exposing (..)
+import Html.Events exposing (..)
 import Http exposing (..)
 
 
@@ -20,11 +21,15 @@ init =
 
 type Msg
     = Joke (Result Error String)
+    | RequestNewJoke
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        RequestNewJoke ->
+            ( model, randomJoke )
+
         Joke (Ok joke) ->
             ( joke, Cmd.none )
 
@@ -35,7 +40,9 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ text model
+        [ button [ onClick RequestNewJoke ] [ text "New joke" ]
+        , br [] []
+        , text model
         ]
 
 
