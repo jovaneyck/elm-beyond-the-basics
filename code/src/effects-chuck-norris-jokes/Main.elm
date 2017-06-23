@@ -3,6 +3,7 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Http exposing (..)
+import Json.Decode exposing (..)
 
 
 type alias Model =
@@ -53,7 +54,7 @@ randomJoke =
             "https://api.icndb.com/jokes/random"
 
         request =
-            Http.getString url
+            Http.get url (at [ "value", "joke" ] string)
 
         cmd =
             Http.send Joke request
