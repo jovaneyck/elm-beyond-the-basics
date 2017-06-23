@@ -2,6 +2,8 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
+import WebSocket exposing (..)
+import Json.Decode exposing (..)
 
 
 -- model
@@ -31,6 +33,14 @@ init =
 
 type Msg
     = ToggleStreaming
+    | Time String
+
+
+decoder : String -> Msg
+decoder message =
+    decodeString (at [ "time" ] string) message
+        |> Result.withDefault "Could not parse time"
+        |> Time
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -40,8 +50,20 @@ update msg model =
             let
                 newModel =
                     { model | streamTime = not model.streamTime }
+
+                msg =
+                    if newModel.streamTime then
+                        "start"
+                    else
+                        "stop"
+
+                cmd =
+                    send wsUrl msg
             in
-                ( newModel, Cmd.none )
+                ( newModel, cmd )
+
+        Time t ->
+            ( { model | time = t }, Cmd.none )
 
 
 
@@ -64,9 +86,17 @@ view model =
             ]
 
 
+wsUrl : String
+wsUrl =
+    "ws://localhost:5000"
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    if model.streamTime then
+        listen wsUrl decoder
+    else
+        Sub.none
 
 
 main : Program Never Model Msg
