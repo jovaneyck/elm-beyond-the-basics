@@ -7,16 +7,19 @@ import Main exposing (..)
 import String
 
 
+--How to run: <elm-test --watch> in root of project
+
+
 suite : Test
 suite =
     describe "Testing basics"
         [ test "Can do basic assertions" <|
-            \_ ->
+            \() ->
                 let
                     actual =
-                        add 2 3
+                        add 3 2
                 in
-                    Expect.equal 5 actual
+                    Expect.equal actual 5
         , fuzz string "Can test properties" <|
             \aString ->
                 aString
