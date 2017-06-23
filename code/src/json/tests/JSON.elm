@@ -1,6 +1,7 @@
 module JSON exposing (..)
 
 import Json.Decode exposing (..)
+import Json.Decode.Pipeline exposing (decode, required, optional)
 import Test exposing (..)
 import Expect
 
@@ -62,6 +63,25 @@ suite =
                             (field "id" int)
                             (field "joke" string)
                             (field "categories" (list string))
+                            |> at [ "value" ]
+                in
+                    Expect.equal
+                        (decodeString decoder json)
+                        (Ok
+                            { id = 541
+                            , joke = "When Chuck Norris break the build, you can't fix it, because there is not a single line of code left."
+                            , categories = [ "nerdy" ]
+                            }
+                        )
+        , test "Json.Decode.Pipeline provides more flexibility" <|
+            \() ->
+                let
+                    decoder =
+                        decode Joke
+                            |> required "id" int
+                            |> required "joke" string
+                            --default to empty list if nothing found
+                            |> optional "categories" (list string) []
                             |> at [ "value" ]
                 in
                     Expect.equal
