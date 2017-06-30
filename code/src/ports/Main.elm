@@ -1,4 +1,4 @@
-port module Main exposing (..)
+module Main exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
@@ -43,8 +43,19 @@ init =
 type Msg
     = NameInput String
     | SaveCustomer
-    | CustomerSaved String
-    | CustomerAdded Customer
+
+
+addCustomer : Model -> Model
+addCustomer model =
+    let
+        new =
+            { id = model.nextId |> toString, name = model.name }
+    in
+        { model
+            | customers = new :: model.customers
+            , name = ""
+            , nextId = model.nextId + 1
+        }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -54,17 +65,7 @@ update msg model =
             ( { model | name = name }, Cmd.none )
 
         SaveCustomer ->
-            ( model, addCustomer model.name )
-
-        CustomerSaved key ->
-            ( { model | name = "" }, Cmd.none )
-
-        CustomerAdded customer ->
-            let
-                newCustomers =
-                    customer :: model.customers
-            in
-                ( { model | customers = newCustomers }, Cmd.none )
+            ( addCustomer model, Cmd.none )
 
 
 
@@ -111,20 +112,7 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    -- Sub.none
-    Sub.batch
-        [ customerSaved CustomerSaved
-        , newCustomer CustomerAdded
-        ]
-
-
-port addCustomer : String -> Cmd msg
-
-
-port customerSaved : (String -> msg) -> Sub msg
-
-
-port newCustomer : (Customer -> msg) -> Sub msg
+    Sub.none
 
 
 main : Program Never Model Msg

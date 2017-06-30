@@ -6,8 +6,15 @@
 //   databaseURL: "YOURURLHERE",
 //   storageBucket: "",
 // };
+var config = {
+    apiKey: "AIzaSyB0PfbK06KOxiaMz9HzkTEocRlLyUCXuDc",
+    authDomain: "elm-beyond-basics-waitlist-app.firebaseapp.com",
+    databaseURL: "https://elm-beyond-basics-waitlist-app.firebaseio.com",
+    projectId: "elm-beyond-basics-waitlist-app",
+    storageBucket: "",
+    messagingSenderId: "521580828083"
+  };
 
-alert('Add firebase config, see README.md! (then remove this)');
 var app = firebase.initializeApp(config);
 var database = app.database();
 var CUSTOMERREFPATH = "customers"
