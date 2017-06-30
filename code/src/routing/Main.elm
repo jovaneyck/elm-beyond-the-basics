@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
+import Navigation exposing (..)
 
 
 type Page
@@ -16,19 +17,35 @@ type alias Model =
     }
 
 
-initModel : Model
-initModel =
-    { page = LeaderBoard }
+initModel : Page -> Model
+initModel page =
+    -- Now takes a PAGE input
+    { page = page }
+
+
+init : Location -> ( Model, Cmd Msg )
+init location =
+    --init is now a FUNCTION that takes the initial Location (i.e. URL).
+    let
+        page =
+            hashToPage location.hash
+    in
+        ( initModel page, Cmd.none )
 
 
 type Msg
     = Navigate Page
+    | ChangePage Page
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        --don't change model, request a URL change and let everything cascade from there
         Navigate page ->
+            ( model, Navigation.newUrl <| pageToHash page )
+
+        ChangePage page ->
             ( { model | page = page }, Cmd.none )
 
 
@@ -83,10 +100,53 @@ subscriptions model =
     Sub.none
 
 
+pageToHash : Page -> String
+pageToHash page =
+    case page of
+        LeaderBoard ->
+            "#leader"
+
+        AddRunner ->
+            "#add"
+
+        Login ->
+            "#login"
+
+        NotFound ->
+            "#notfound"
+
+
+hashToPage : String -> Page
+hashToPage hash =
+    case hash of
+        "#leader" ->
+            LeaderBoard
+
+        "" ->
+            LeaderBoard
+
+        "#add" ->
+            AddRunner
+
+        "#login" ->
+            Login
+
+        _ ->
+            NotFound
+
+
+locationToMsg : Location -> Msg
+locationToMsg location =
+    location.hash
+        |> hashToPage
+        |> ChangePage
+
+
 main : Program Never Model Msg
 main =
-    Html.program
-        { init = ( initModel, Cmd.none )
+    Navigation.program locationToMsg
+        --Instead of Html.program!
+        { init = init
         , update = update
         , subscriptions = subscriptions
         , view = view
