@@ -22,26 +22,26 @@ initModel =
 
 
 type Msg
-    = ChangePage Page
+    = Navigate Page
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ChangePage page ->
+        Navigate page ->
             ( { model | page = page }, Cmd.none )
 
 
 menu : Model -> Html Msg
 menu model =
     header []
-        [ a [ onClick (ChangePage LeaderBoard) ]
+        [ a [ onClick (Navigate LeaderBoard) ]
             [ text "LeaderBoard" ]
         , text " | "
-        , a [ onClick (ChangePage AddRunner) ]
+        , a [ onClick (Navigate AddRunner) ]
             [ text "Add Runner" ]
         , text " | "
-        , a [ onClick (ChangePage Login) ]
+        , a [ onClick (Navigate Login) ]
             [ text "Login" ]
         ]
 
