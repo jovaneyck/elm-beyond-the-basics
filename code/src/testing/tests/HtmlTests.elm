@@ -36,6 +36,6 @@ suite =
                             |> Query.find [ tag "button" ]
                 in
                     button
-                        |> Event.simulate (Event.click)
-                        |> Event.expect (Main.ClickedAButton)
+                        |> Event.simulate Event.click
+                        |> Event.expect Main.ClickedAButton
         ]
