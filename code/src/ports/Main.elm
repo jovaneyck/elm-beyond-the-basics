@@ -3,20 +3,15 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
+import FireBasePort exposing (..)
 
 
 -- model
 
 
-type alias Customer =
-    { id : String
-    , name : String
-    }
-
-
 type alias Model =
     { name : String
-    , customers : List Customer
+    , customers : List FireBasePort.Customer
     , error : Maybe String
     , nextId : Int
     }
@@ -43,19 +38,8 @@ init =
 type Msg
     = NameInput String
     | SaveCustomer
-
-
-addCustomer : Model -> Model
-addCustomer model =
-    let
-        new =
-            { id = model.nextId |> toString, name = model.name }
-    in
-        { model
-            | customers = new :: model.customers
-            , name = ""
-            , nextId = model.nextId + 1
-        }
+    | CustomerSaved String
+    | NewCustomer Customer
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -65,7 +49,14 @@ update msg model =
             ( { model | name = name }, Cmd.none )
 
         SaveCustomer ->
-            ( addCustomer model, Cmd.none )
+            -- Don't touch the model, just push a command to the firebase port
+            ( model, FireBasePort.addCustomer model.name )
+
+        CustomerSaved key ->
+            ( { model | name = "" }, Cmd.none )
+
+        NewCustomer customer ->
+            ( { model | customers = customer :: model.customers }, Cmd.none )
 
 
 
@@ -112,7 +103,10 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch
+        [ FireBasePort.customerSaved CustomerSaved
+        , FireBasePort.newCustomer NewCustomer
+        ]
 
 
 main : Program Never Model Msg

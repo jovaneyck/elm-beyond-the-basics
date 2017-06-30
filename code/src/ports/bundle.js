@@ -8260,9 +8260,31 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
-var _user$project$Main$subscriptions = function (model) {
-	return _elm_lang$core$Platform_Sub$none;
-};
+var _user$project$FireBasePort$addCustomer = _elm_lang$core$Native_Platform.outgoingPort(
+	'addCustomer',
+	function (v) {
+		return v;
+	});
+var _user$project$FireBasePort$customerSaved = _elm_lang$core$Native_Platform.incomingPort('customerSaved', _elm_lang$core$Json_Decode$string);
+var _user$project$FireBasePort$newCustomer = _elm_lang$core$Native_Platform.incomingPort(
+	'newCustomer',
+	A2(
+		_elm_lang$core$Json_Decode$andThen,
+		function (id) {
+			return A2(
+				_elm_lang$core$Json_Decode$andThen,
+				function (name) {
+					return _elm_lang$core$Json_Decode$succeed(
+						{id: id, name: name});
+				},
+				A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string));
+		},
+		A2(_elm_lang$core$Json_Decode$field, 'id', _elm_lang$core$Json_Decode$string)));
+var _user$project$FireBasePort$Customer = F2(
+	function (a, b) {
+		return {id: a, name: b};
+	});
+
 var _user$project$Main$viewCustomer = function (customer) {
 	return A2(
 		_elm_lang$html$Html$li,
@@ -8298,36 +8320,42 @@ var _user$project$Main$viewCustomers = function (customers) {
 				},
 				customers)));
 };
-var _user$project$Main$addCustomer = function (model) {
-	var $new = {
-		id: _elm_lang$core$Basics$toString(model.nextId),
-		name: model.name
-	};
-	return _elm_lang$core$Native_Utils.update(
-		model,
-		{
-			customers: {ctor: '::', _0: $new, _1: model.customers},
-			name: '',
-			nextId: model.nextId + 1
-		});
-};
 var _user$project$Main$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
-		if (_p0.ctor === 'NameInput') {
-			return {
-				ctor: '_Tuple2',
-				_0: _elm_lang$core$Native_Utils.update(
-					model,
-					{name: _p0._0}),
-				_1: _elm_lang$core$Platform_Cmd$none
-			};
-		} else {
-			return {
-				ctor: '_Tuple2',
-				_0: _user$project$Main$addCustomer(model),
-				_1: _elm_lang$core$Platform_Cmd$none
-			};
+		switch (_p0.ctor) {
+			case 'NameInput':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{name: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SaveCustomer':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _user$project$FireBasePort$addCustomer(model.name)
+				};
+			case 'CustomerSaved':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{name: ''}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			default:
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							customers: {ctor: '::', _0: _p0._0, _1: model.customers}
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
 		}
 	});
 var _user$project$Main$initModel = {
@@ -8337,14 +8365,28 @@ var _user$project$Main$initModel = {
 	nextId: 1
 };
 var _user$project$Main$init = {ctor: '_Tuple2', _0: _user$project$Main$initModel, _1: _elm_lang$core$Platform_Cmd$none};
-var _user$project$Main$Customer = F2(
-	function (a, b) {
-		return {id: a, name: b};
-	});
 var _user$project$Main$Model = F4(
 	function (a, b, c, d) {
 		return {name: a, customers: b, error: c, nextId: d};
 	});
+var _user$project$Main$NewCustomer = function (a) {
+	return {ctor: 'NewCustomer', _0: a};
+};
+var _user$project$Main$CustomerSaved = function (a) {
+	return {ctor: 'CustomerSaved', _0: a};
+};
+var _user$project$Main$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$batch(
+		{
+			ctor: '::',
+			_0: _user$project$FireBasePort$customerSaved(_user$project$Main$CustomerSaved),
+			_1: {
+				ctor: '::',
+				_0: _user$project$FireBasePort$newCustomer(_user$project$Main$NewCustomer),
+				_1: {ctor: '[]'}
+			}
+		});
+};
 var _user$project$Main$SaveCustomer = {ctor: 'SaveCustomer'};
 var _user$project$Main$NameInput = function (a) {
 	return {ctor: 'NameInput', _0: a};
