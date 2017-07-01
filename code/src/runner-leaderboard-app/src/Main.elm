@@ -12,21 +12,35 @@ import LeaderBoard exposing (..)
 
 type alias Model =
     { page : Page
+    , leaderBoardModel : LeaderBoard.Model
     }
 
 
 type Page
     = NotFound
+    | LeaderBoard
 
 
-initModel : Model
-initModel =
-    { page = NotFound }
+init : Location -> ( Model, Cmd Msg )
+init location =
+    let
+        page =
+            hashToPage location.hash
 
+        ( leaderBoardModel, leaderBoardCmd ) =
+            LeaderBoard.init
 
-init : ( Model, Cmd Msg )
-init =
-    ( initModel, Cmd.none )
+        initModel =
+            ({ page = page
+             , leaderBoardModel = leaderBoardModel
+             }
+            )
+
+        cmds =
+            Cmd.batch
+                [ Cmd.map LeaderBoardMsg leaderBoardCmd ]
+    in
+        ( initModel, cmds )
 
 
 
@@ -35,13 +49,27 @@ init =
 
 type Msg
     = Navigate Page
+    | ChangePage Page
+    | LeaderBoardMsg LeaderBoard.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Navigate page ->
+            ( model, Navigation.newUrl <| pageToHash page )
+
+        ChangePage page ->
             ( { model | page = page }, Cmd.none )
+
+        LeaderBoardMsg msg ->
+            let
+                ( lbmodel, cmd ) =
+                    LeaderBoard.update msg model.leaderBoardModel
+            in
+                ( { model | leaderBoardModel = lbmodel }
+                , Cmd.map LeaderBoardMsg cmd
+                )
 
 
 
@@ -53,6 +81,10 @@ view model =
     let
         page =
             case model.page of
+                LeaderBoard ->
+                    LeaderBoard.view model.leaderBoardModel
+                        |> Html.map LeaderBoardMsg
+
                 NotFound ->
                     div [ class "main" ]
                         [ h1 []
@@ -68,7 +100,7 @@ view model =
 pageHeader : Model -> Html Msg
 pageHeader model =
     header []
-        [ a [ href "#/" ] [ text "Race Results" ]
+        [ a [ onClick <| Navigate LeaderBoard ] [ text "Race Results" ]
         , ul []
             [ li []
                 [ a [ href "#" ] [ text "Link" ]
@@ -88,12 +120,49 @@ pageHeader model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    let
+        lb =
+            LeaderBoard.subscriptions model.leaderBoardModel
+                |> Sub.map LeaderBoardMsg
+    in
+        Sub.batch
+            [ lb ]
+
+
+pageToHash : Page -> String
+pageToHash page =
+    case page of
+        LeaderBoard ->
+            "#/"
+
+        NotFound ->
+            "#/notfound"
+
+
+hashToPage : String -> Page
+hashToPage hash =
+    case hash of
+        "#/" ->
+            LeaderBoard
+
+        "" ->
+            LeaderBoard
+
+        _ ->
+            NotFound
+
+
+locationToMsg : Location -> Msg
+locationToMsg location =
+    location.hash
+        |> hashToPage
+        |> ChangePage
 
 
 main : Program Never Model Msg
 main =
-    Html.program
+    Navigation.program
+        locationToMsg
         { init = init
         , update = update
         , view = view
