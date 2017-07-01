@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Navigation exposing (..)
 import LeaderBoard exposing (..)
+import Login exposing (..)
 
 
 -- model
@@ -13,12 +14,14 @@ import LeaderBoard exposing (..)
 type alias Model =
     { page : Page
     , leaderBoardModel : LeaderBoard.Model
+    , loginModel : Login.Model
     }
 
 
 type Page
     = NotFound
     | LeaderBoard
+    | Login
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -30,15 +33,21 @@ init location =
         ( leaderBoardModel, leaderBoardCmd ) =
             LeaderBoard.init
 
+        ( loginModel, loginCmd ) =
+            Login.init
+
         initModel =
             ({ page = page
              , leaderBoardModel = leaderBoardModel
+             , loginModel = loginModel
              }
             )
 
         cmds =
             Cmd.batch
-                [ Cmd.map LeaderBoardMsg leaderBoardCmd ]
+                [ Cmd.map LeaderBoardMsg leaderBoardCmd
+                , Cmd.map LoginMsg loginCmd
+                ]
     in
         ( initModel, cmds )
 
@@ -51,6 +60,7 @@ type Msg
     = Navigate Page
     | ChangePage Page
     | LeaderBoardMsg LeaderBoard.Msg
+    | LoginMsg Login.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,6 +81,15 @@ update msg model =
                 , Cmd.map LeaderBoardMsg cmd
                 )
 
+        LoginMsg msg ->
+            let
+                ( lmodel, cmd ) =
+                    Login.update msg model.loginModel
+            in
+                ( { model | loginModel = lmodel }
+                , Cmd.map LoginMsg cmd
+                )
+
 
 
 -- view
@@ -84,6 +103,10 @@ view model =
                 LeaderBoard ->
                     LeaderBoard.view model.leaderBoardModel
                         |> Html.map LeaderBoardMsg
+
+                Login ->
+                    Login.view model.loginModel
+                        |> Html.map LoginMsg
 
                 NotFound ->
                     div [ class "main" ]
@@ -108,7 +131,7 @@ pageHeader model =
             ]
         , ul []
             [ li []
-                [ a [ href "#" ] [ text "Login" ]
+                [ a [ onClick <| Navigate Login ] [ text "Login" ]
                 ]
             ]
         ]
@@ -124,9 +147,15 @@ subscriptions model =
         lb =
             LeaderBoard.subscriptions model.leaderBoardModel
                 |> Sub.map LeaderBoardMsg
+
+        login =
+            Login.subscriptions model.loginModel
+                |> Sub.map LoginMsg
     in
         Sub.batch
-            [ lb ]
+            [ lb
+            , login
+            ]
 
 
 pageToHash : Page -> String
@@ -134,6 +163,9 @@ pageToHash page =
     case page of
         LeaderBoard ->
             "#/"
+
+        Login ->
+            "#/login"
 
         NotFound ->
             "#/notfound"
@@ -147,6 +179,9 @@ hashToPage hash =
 
         "" ->
             LeaderBoard
+
+        "#/login" ->
+            Login
 
         _ ->
             NotFound
