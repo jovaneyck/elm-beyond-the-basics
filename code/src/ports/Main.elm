@@ -40,6 +40,18 @@ type Msg
     | SaveCustomer
     | CustomerSaved String
     | NewCustomer Customer
+    | DeleteCustomer Customer
+    | CustomerDeleted String
+
+
+removeCustomer : String -> Model -> Model
+removeCustomer id model =
+    let
+        newCustomers =
+            model.customers
+                |> List.filter (\c -> c.id /= id)
+    in
+        { model | customers = newCustomers }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -58,6 +70,12 @@ update msg model =
         NewCustomer customer ->
             ( { model | customers = customer :: model.customers }, Cmd.none )
 
+        DeleteCustomer customer ->
+            ( model, FireBasePort.deleteCustomer customer )
+
+        CustomerDeleted id ->
+            ( model |> removeCustomer id, Cmd.none )
+
 
 
 -- view
@@ -66,7 +84,11 @@ update msg model =
 viewCustomer : Customer -> Html Msg
 viewCustomer customer =
     li []
-        [ i [ class "remove" ] []
+        [ i
+            [ class "remove"
+            , onClick <| DeleteCustomer customer
+            ]
+            []
         , text customer.name
         ]
 
@@ -106,6 +128,7 @@ subscriptions model =
     Sub.batch
         [ FireBasePort.customerSaved CustomerSaved
         , FireBasePort.newCustomer NewCustomer
+        , FireBasePort.customerDeleted CustomerDeleted
         ]
 
 

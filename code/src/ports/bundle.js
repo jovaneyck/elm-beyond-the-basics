@@ -8280,46 +8280,29 @@ var _user$project$FireBasePort$newCustomer = _elm_lang$core$Native_Platform.inco
 				A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string));
 		},
 		A2(_elm_lang$core$Json_Decode$field, 'id', _elm_lang$core$Json_Decode$string)));
+var _user$project$FireBasePort$deleteCustomer = _elm_lang$core$Native_Platform.outgoingPort(
+	'deleteCustomer',
+	function (v) {
+		return {id: v.id, name: v.name};
+	});
+var _user$project$FireBasePort$customerDeleted = _elm_lang$core$Native_Platform.incomingPort('customerDeleted', _elm_lang$core$Json_Decode$string);
 var _user$project$FireBasePort$Customer = F2(
 	function (a, b) {
 		return {id: a, name: b};
 	});
 
-var _user$project$Main$viewCustomer = function (customer) {
-	return A2(
-		_elm_lang$html$Html$li,
-		{ctor: '[]'},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$i,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('remove'),
-					_1: {ctor: '[]'}
-				},
-				{ctor: '[]'}),
-			_1: {
-				ctor: '::',
-				_0: _elm_lang$html$Html$text(customer.name),
-				_1: {ctor: '[]'}
-			}
-		});
-};
-var _user$project$Main$viewCustomers = function (customers) {
-	return A2(
-		_elm_lang$html$Html$ul,
-		{ctor: '[]'},
-		A2(
-			_elm_lang$core$List$map,
-			_user$project$Main$viewCustomer,
-			A2(
-				_elm_lang$core$List$sortBy,
-				function (_) {
-					return _.id;
-				},
-				customers)));
-};
+var _user$project$Main$removeCustomer = F2(
+	function (id, model) {
+		var newCustomers = A2(
+			_elm_lang$core$List$filter,
+			function (c) {
+				return !_elm_lang$core$Native_Utils.eq(c.id, id);
+			},
+			model.customers);
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{customers: newCustomers});
+	});
 var _user$project$Main$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
@@ -8346,7 +8329,7 @@ var _user$project$Main$update = F2(
 						{name: ''}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
-			default:
+			case 'NewCustomer':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
@@ -8354,6 +8337,18 @@ var _user$project$Main$update = F2(
 						{
 							customers: {ctor: '::', _0: _p0._0, _1: model.customers}
 						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'DeleteCustomer':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _user$project$FireBasePort$deleteCustomer(_p0._0)
+				};
+			default:
+				return {
+					ctor: '_Tuple2',
+					_0: A2(_user$project$Main$removeCustomer, _p0._0, model),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}
@@ -8369,6 +8364,52 @@ var _user$project$Main$Model = F4(
 	function (a, b, c, d) {
 		return {name: a, customers: b, error: c, nextId: d};
 	});
+var _user$project$Main$CustomerDeleted = function (a) {
+	return {ctor: 'CustomerDeleted', _0: a};
+};
+var _user$project$Main$DeleteCustomer = function (a) {
+	return {ctor: 'DeleteCustomer', _0: a};
+};
+var _user$project$Main$viewCustomer = function (customer) {
+	return A2(
+		_elm_lang$html$Html$li,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$i,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('remove'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onClick(
+							_user$project$Main$DeleteCustomer(customer)),
+						_1: {ctor: '[]'}
+					}
+				},
+				{ctor: '[]'}),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(customer.name),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$Main$viewCustomers = function (customers) {
+	return A2(
+		_elm_lang$html$Html$ul,
+		{ctor: '[]'},
+		A2(
+			_elm_lang$core$List$map,
+			_user$project$Main$viewCustomer,
+			A2(
+				_elm_lang$core$List$sortBy,
+				function (_) {
+					return _.id;
+				},
+				customers)));
+};
 var _user$project$Main$NewCustomer = function (a) {
 	return {ctor: 'NewCustomer', _0: a};
 };
@@ -8383,7 +8424,11 @@ var _user$project$Main$subscriptions = function (model) {
 			_1: {
 				ctor: '::',
 				_0: _user$project$FireBasePort$newCustomer(_user$project$Main$NewCustomer),
-				_1: {ctor: '[]'}
+				_1: {
+					ctor: '::',
+					_0: _user$project$FireBasePort$customerDeleted(_user$project$Main$CustomerDeleted),
+					_1: {ctor: '[]'}
+				}
 			}
 		});
 };

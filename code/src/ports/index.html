@@ -16,11 +16,18 @@
   <script>
     var app = Elm.Main.fullscreen();
     app.ports.addCustomer.subscribe(function(customerName){
-      console.log(customerName);
       addCustomer({name: customerName})
         .then(function(response){
-          console.log("Saved!");
           app.ports.customerSaved.send(response.key);
+        }, function(err){
+          console.log("error:", err);
+        });
+    });
+    app.ports.deleteCustomer.subscribe(function(customer){
+      console.log(customer);
+      deleteCustomer({id: customer.id})
+        .then(function(response){
+          app.ports.customerDeleted.send(customer.id);
         }, function(err){
           console.log("error:", err);
         });

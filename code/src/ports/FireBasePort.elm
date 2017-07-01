@@ -14,3 +14,9 @@ port customerSaved : (String -> msg) -> Sub msg
 
 
 port newCustomer : (Customer -> msg) -> Sub msg
+
+
+port deleteCustomer : Customer -> Cmd msg
+
+
+port customerDeleted : (String -> msg) -> Sub msg
